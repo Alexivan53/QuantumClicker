@@ -1,0 +1,871 @@
+<!-- 
+    =====================================================================================================
+    DEPLOYMENT INSTRUCTIONS
+    =====================================================================================================
+    This is a single-file web application. This makes it very easy to deploy.
+
+    There are two primary ways to get this game online:
+
+    Method 1: Using a Local Web Server (For testing)
+
+    1. Save this file: Save this entire code block as an HTML file, for example, 'index.html'.
+    2. Install a simple web server: If you have Python installed, you can open your terminal or command prompt, navigate to the directory where you saved the file, and run one of the following commands:
+       - For Python 3: python -m http.server
+       - For Python 2: python -m SimpleHTTPServer
+    3. Open in browser: Your terminal will tell you the address. It's usually something like 'http://localhost:8000'. Copy that address and paste it into your web browser. You'll see your game running!
+
+    Method 2: Using GitHub Pages (Free Hosting)
+
+    1. Create a GitHub account: If you don't have one, sign up at https://github.com/.
+    2. Create a new repository: Click the '+' icon in the top right and select 'New repository'. Give it a name, for example, 'quantum-clicker'. Make sure it's public.
+    3. Upload the file: On your new repository's page, click on 'Add file' > 'Upload files'. Drag and drop this 'index.html' file into the upload area. Click 'Commit changes'.
+    4. Enable GitHub Pages: Go to the 'Settings' tab of your repository. In the left sidebar, click on 'Pages'. Under 'Source', select the 'main' branch and click 'Save'.
+    5. Access your game: GitHub will provide you with a URL, which usually looks like 'https://[your-username].github.io/quantum-clicker/'. It may take a few minutes for the page to go live.
+    
+    That's it! Your game will be live for anyone to play.
+    
+    =====================================================================================================
+    END OF DEPLOYMENT INSTRUCTIONS
+    =====================================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Clicker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #2d3748, #1a202c);
+            color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 1400px;
+            width: 95%;
+            padding: 1.5rem;
+            background-color: rgba(45, 55, 72, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #81e6d9;
+            text-shadow: 0 0 15px #4fd1c5, 0 0 30px #4fd1c5;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .section-header {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #63b3ed;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .currency-pop {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #48bb78;
+            pointer-events: none;
+            animation: fade-up 1s forwards;
+            white-space: nowrap;
+            text-shadow: 0 0 5px #48bb78;
+        }
+
+        @keyframes fade-up {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-70px); opacity: 0; }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(79, 209, 197, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(79, 209, 197, 1); }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(79, 209, 197, 0.5);
+            animation: ripple 0.8s ease-out forwards;
+            transform: scale(0);
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .upgrade-button {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .upgrade-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .upgrade-button:disabled {
+            filter: grayscale(80%);
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #lore-container, #message-box {
+            z-index: 1000;
+        }
+
+        #lore-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(30, 41, 59, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #dev-tools-panel {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen flex items-center justify-center p-4">
+
+    <div class="game-container">
+        <h1 class="title">Quantum Clicker</h1>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="text-center">
+                <p class="text-3xl font-bold text-teal-400">Quantum Essence</p>
+                <p id="counter" class="text-5xl font-mono mt-2">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-xl text-gray-400">CPS: <span id="cps-display" class="font-bold">0</span></p>
+                <p class="text-xl text-gray-400">Energy: <span id="energy-display" class="font-bold">0</span></p>
+                <p class="text-xl text-gray-400">Click Power: <span id="click-power-display" class="font-bold">1</span></p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <button id="save-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow transition duration-300">
+                    <i class="fas fa-save mr-2"></i>Save Game
+                </button>
+                <button id="load-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full shadow transition duration-300">
+                    <i class="fas fa-undo mr-2"></i>Load Game
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="flex flex-col items-center p-4 bg-gray-700 rounded-lg shadow-inner relative overflow-hidden">
+                <h2 class="section-header">Quantum Core</h2>
+                <div id="quantum-core-container" class="relative w-48 h-48 sm:w-64 sm:h-64 flex justify-center items-center cursor-pointer transition-transform duration-300 active:scale-95">
+                    <div id="quantum-core" class="w-full h-full rounded-full bg-gradient-to-br from-teal-400 to-indigo-600 pulse-animation"></div>
+                </div>
+                
+                <div class="mt-8 flex flex-wrap justify-center gap-4">
+                     <button id="tts-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full disabled:bg-gray-500 disabled:cursor-not-allowed transition duration-300">
+                         <i class="fas fa-volume-up mr-2"></i><span id="tts-button-text">✨ Hear My Essence</span>
+                     </button>
+                     <button id="lore-button" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-full disabled:bg-gray-500 disabled:cursor-not-allowed transition duration-300">
+                         <i class="fas fa-scroll mr-2"></i><span id="lore-button-text">✨ Get Lore</span>
+                     </button>
+                     <button id="toggle-dev-tools" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                        <i class="fas fa-terminal mr-2"></i>Dev Tools
+                     </button>
+                </div>
+
+                <div id="dev-tools-panel" class="p-4 bg-gray-700 rounded-lg shadow-md mt-4 w-full">
+                    <h2 class="section-header text-red-400 mb-4">Dev Tools</h2>
+                    <div class="flex flex-wrap gap-4 justify-center">
+                        <button id="add-clicks-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                            <i class="fas fa-plus mr-2"></i>Add 1M Essence
+                        </button>
+                        <button id="add-energy-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                            <i class="fas fa-bolt mr-2"></i>Add 100 Energy
+                        </button>
+                        <button id="max-upgrades-button" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded-full transition duration-300">
+                            <i class="fas fa-level-up-alt mr-2"></i>Max All Upgrades
+                        </button>
+                        <button id="reset-game-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">
+                            <i class="fas fa-trash-alt mr-2"></i>Reset Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div class="p-4 bg-gray-700 rounded-lg shadow-md">
+                    <h2 class="section-header">Click Upgrades</h2>
+                    <div id="click-upgrades-list" class="flex flex-col gap-3">
+                        <!-- Click Upgrades will be dynamically added here -->
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gray-700 rounded-lg shadow-md">
+                    <h2 class="section-header">Generators</h2>
+                    <div id="auto-upgrades-list" class="flex flex-col gap-3">
+                        <!-- Auto-Upgrades will be dynamically added here -->
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gray-700 rounded-lg shadow-md mt-4">
+                    <h2 class="section-header text-yellow-400">Prestige</h2>
+                    <p class="text-gray-300 mb-2">Prestige to gain permanent bonuses to your essence production.</p>
+                    <p class="text-gray-400 font-bold">Essence Multiplier: <span id="prestige-multiplier" class="text-yellow-400">1x</span></p>
+                    <p class="text-gray-400 font-bold">Energy Boost: <span id="prestige-energy-boost" class="text-yellow-400">0%</span></p>
+                    <button id="prestige-button" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-6 rounded-full mt-2 shadow disabled:bg-gray-500 disabled:cursor-not-allowed transition duration-300">
+                        Prestige
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lore Modal -->
+    <div id="lore-container" style="display: none;">
+        <h3 id="lore-title" class="text-xl font-bold mb-2 text-teal-300"></h3>
+        <p id="lore-content" class="text-gray-300 mb-4"></p>
+        <button onclick="document.getElementById('lore-container').style.display='none'" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300">Close</button>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-8 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-500 ease-in-out px-4 py-2 bg-gray-800 rounded-full text-white"></div>
+
+
+    <script>
+        const showMessage = (message) => {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.opacity = '1';
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+            }, 3000);
+        };
+
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const pcmToWav = (pcmData, sampleRate) => {
+            const wavData = new ArrayBuffer(44 + pcmData.byteLength);
+            const view = new DataView(wavData);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.byteLength, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.byteLength, true);
+
+            const pcmBytes = new Uint8Array(pcmData);
+            for (let i = 0; i < pcmData.byteLength; i++) {
+                view.setUint8(44 + i, pcmBytes[i]);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quantumCoreContainer = document.getElementById('quantum-core-container');
+            const quantumCore = document.getElementById('quantum-core');
+            const counterDisplay = document.getElementById('counter');
+            const cpsDisplay = document.getElementById('cps-display');
+            const energyDisplay = document.getElementById('energy-display');
+            const clickPowerDisplay = document.getElementById('click-power-display');
+            const upgradesList = document.getElementById('auto-upgrades-list');
+            const clickUpgradesList = document.getElementById('click-upgrades-list');
+            const prestigeButton = document.getElementById('prestige-button');
+            const prestigeMultiplierDisplay = document.getElementById('prestige-multiplier');
+            const prestigeEnergyBoostDisplay = document.getElementById('prestige-energy-boost');
+            const saveButton = document.getElementById('save-button');
+            const loadButton = document.getElementById('load-button');
+            const ttsButton = document.getElementById('tts-button');
+            const loreButton = document.getElementById('lore-button');
+            const loreContainer = document.getElementById('lore-container');
+            const loreTitle = document.getElementById('lore-title');
+            const loreContent = document.getElementById('lore-content');
+            const toggleDevToolsButton = document.getElementById('toggle-dev-tools');
+            const devToolsPanel = document.getElementById('dev-tools-panel');
+            const addClicksButton = document.getElementById('add-clicks-button');
+            const addEnergyButton = document.getElementById('add-energy-button');
+            const maxUpgradesButton = document.getElementById('max-upgrades-button');
+            const resetGameButton = document.getElementById('reset-game-button');
+            const ttsButtonText = document.getElementById('tts-button-text');
+            const loreButtonText = document.getElementById('lore-button-text');
+
+            let currency = 0;
+            let energy = 0;
+            let clickPower = 1;
+            let cps = 0;
+            let totalClicksEver = 0;
+            let prestigeMultiplier = 1;
+            let prestigeEnergyBoost = 0;
+            let isGeneratingLore = false;
+            let isGeneratingTTS = false;
+
+            const autoUpgrades = [
+                { id: 'quantum_harvester', name: 'Quantum Harvester', baseCost: 100, cps: 0.1, energyCost: 0, count: 0 },
+                { id: 'photon_farm', name: 'Photon Farm', baseCost: 1000, cps: 1, energyCost: 0, count: 0 },
+                { id: 'fusion_reactor', name: 'Fusion Reactor', baseCost: 10000, cps: 10, energyCost: 1, count: 0 },
+                { id: 'dark_matter_well', name: 'Dark Matter Well', baseCost: 100000, cps: 100, energyCost: 10, count: 0 },
+                { id: 'singularity_engine', name: 'Singularity Engine', baseCost: 1000000, cps: 1000, energyCost: 100, count: 0 }
+            ];
+            
+            const clickUpgrades = [
+                { id: 'finger', name: 'Quantum Finger', baseCost: 50, clickBoost: 1, count: 0 },
+                { id: 'glove', name: 'Dimensional Glove', baseCost: 500, clickBoost: 10, count: 0 },
+                { id: 'robot_arm', name: 'Cyborg Arm', baseCost: 5000, clickBoost: 100, count: 0 }
+            ];
+
+            const energyGenerators = [
+                { id: 'solar_panel', name: 'Solar Panel', baseCost: 500, energyPerTick: 0.1, count: 0 },
+                { id: 'geothermal_plant', name: 'Geothermal Plant', baseCost: 5000, energyPerTick: 1, count: 0 },
+                { id: 'antimatter_converter', name: 'Antimatter Converter', baseCost: 50000, energyPerTick: 10, count: 0 }
+            ];
+
+            function saveGame() {
+                const gameState = {
+                    currency,
+                    energy,
+                    clickPower,
+                    cps,
+                    totalClicksEver,
+                    prestigeMultiplier,
+                    prestigeEnergyBoost,
+                    autoUpgrades,
+                    clickUpgrades,
+                    energyGenerators
+                };
+                localStorage.setItem('quantumClickerSave', JSON.stringify(gameState));
+            }
+
+            function loadGame() {
+                const savedState = JSON.parse(localStorage.getItem('quantumClickerSave'));
+                if (savedState) {
+                    currency = savedState.currency;
+                    energy = savedState.energy;
+                    clickPower = savedState.clickPower;
+                    cps = savedState.cps;
+                    totalClicksEver = savedState.totalClicksEver;
+                    prestigeMultiplier = savedState.prestigeMultiplier || 1;
+                    prestigeEnergyBoost = savedState.prestigeEnergyBoost || 0;
+                    
+                    savedState.autoUpgrades.forEach((savedUpgrade, index) => {
+                        autoUpgrades[index].count = savedUpgrade.count;
+                    });
+                    
+                    savedState.clickUpgrades.forEach((savedUpgrade, index) => {
+                        clickUpgrades[index].count = savedUpgrade.count;
+                    });
+                    
+                    savedState.energyGenerators.forEach((savedGenerator, index) => {
+                        energyGenerators[index].count = savedGenerator.count;
+                    });
+                    
+                    updateAllDisplay();
+                    createUpgradeButtons();
+                    createEnergyGeneratorButtons();
+                }
+            }
+            
+            function resetGame() {
+                currency = 0;
+                energy = 0;
+                clickPower = 1;
+                cps = 0;
+                totalClicksEver = 0;
+                prestigeMultiplier = 1;
+                prestigeEnergyBoost = 0;
+                autoUpgrades.forEach(u => u.count = 0);
+                clickUpgrades.forEach(u => u.count = 0);
+                energyGenerators.forEach(g => g.count = 0);
+                updateAllDisplay();
+                createUpgradeButtons();
+                createEnergyGeneratorButtons();
+                saveGame();
+            }
+
+            function updateAllDisplay() {
+                counterDisplay.textContent = formatNumber(currency);
+                cpsDisplay.textContent = formatNumber(calculateTotalCPS());
+                energyDisplay.textContent = formatNumber(energy);
+                clickPowerDisplay.textContent = formatNumber(clickPower * prestigeMultiplier);
+
+                autoUpgrades.forEach(upgrade => {
+                    const cost = calculateCost(upgrade.baseCost, upgrade.count);
+                    const costDisplay = document.getElementById(`auto-cost-${upgrade.id}`);
+                    const countDisplay = document.getElementById(`auto-count-${upgrade.id}`);
+                    const button = document.getElementById(`auto-buy-${upgrade.id}`);
+                    if (costDisplay) costDisplay.textContent = formatNumber(cost);
+                    if (countDisplay) countDisplay.textContent = upgrade.count;
+                    if (button) button.disabled = currency < cost;
+                });
+
+                clickUpgrades.forEach(upgrade => {
+                    const cost = calculateCost(upgrade.baseCost, upgrade.count);
+                    const costDisplay = document.getElementById(`click-cost-${upgrade.id}`);
+                    const countDisplay = document.getElementById(`click-count-${upgrade.id}`);
+                    const button = document.getElementById(`click-buy-${upgrade.id}`);
+                    if (costDisplay) costDisplay.textContent = formatNumber(cost);
+                    if (countDisplay) countDisplay.textContent = upgrade.count;
+                    if (button) button.disabled = currency < cost;
+                });
+
+                energyGenerators.forEach(generator => {
+                    const cost = calculateCost(generator.baseCost, generator.count);
+                    const costDisplay = document.getElementById(`energy-cost-${generator.id}`);
+                    const countDisplay = document.getElementById(`energy-count-${generator.id}`);
+                    const button = document.getElementById(`energy-buy-${generator.id}`);
+                    if (costDisplay) costDisplay.textContent = formatNumber(cost);
+                    if (countDisplay) countDisplay.textContent = generator.count;
+                    if (button) button.disabled = currency < cost;
+                });
+                
+                prestigeMultiplierDisplay.textContent = `${(prestigeMultiplier).toFixed(2)}x`;
+                prestigeEnergyBoostDisplay.textContent = `${(prestigeEnergyBoost).toFixed(2)}%`;
+                const newMultiplier = 1 + (totalClicksEver / 1000000) / 100;
+                prestigeButton.disabled = newMultiplier <= prestigeMultiplier;
+            }
+
+            function formatNumber(num) {
+                if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+                if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+                if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+                return Math.floor(num).toLocaleString();
+            }
+
+            function calculateCost(baseCost, count) {
+                return Math.ceil(baseCost * Math.pow(1.15, count));
+            }
+
+            function calculateTotalCPS() {
+                let totalCps = 0;
+                autoUpgrades.forEach(upgrade => {
+                    if (energy >= upgrade.energyCost) {
+                         totalCps += upgrade.cps * upgrade.count;
+                    }
+                });
+                return totalCps * prestigeMultiplier;
+            }
+
+            function createUpgradeButtons() {
+                upgradesList.innerHTML = '';
+                autoUpgrades.forEach(upgrade => {
+                    const upgradeDiv = document.createElement('div');
+                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    
+                    upgradeDiv.innerHTML = `
+                        <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
+                            <p class="font-bold text-lg">${upgrade.name}</p>
+                            <p class="text-sm text-gray-400">Generates ${upgrade.cps} CPS, consumes ${upgrade.energyCost} Energy/s</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-teal-300">Cost: <span id="auto-cost-${upgrade.id}"></span></span>
+                                <span class="text-sm text-gray-400">Owned: <span id="auto-count-${upgrade.id}"></span></span>
+                            </div>
+                            <button id="auto-buy-${upgrade.id}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full upgrade-button disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                Buy
+                            </button>
+                        </div>
+                    `;
+                    upgradesList.appendChild(upgradeDiv);
+
+                    const buyButton = document.getElementById(`auto-buy-${upgrade.id}`);
+                    buyButton.addEventListener('click', () => {
+                        const cost = calculateCost(upgrade.baseCost, upgrade.count);
+                        if (currency >= cost) {
+                            currency -= cost;
+                            upgrade.count++;
+                            updateAllDisplay();
+                        }
+                    });
+                });
+
+                clickUpgradesList.innerHTML = '';
+                clickUpgrades.forEach(upgrade => {
+                    const upgradeDiv = document.createElement('div');
+                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    
+                    upgradeDiv.innerHTML = `
+                        <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
+                            <p class="font-bold text-lg">${upgrade.name}</p>
+                            <p class="text-sm text-gray-400">Increases click power by +${upgrade.clickBoost}</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-teal-300">Cost: <span id="click-cost-${upgrade.id}"></span></span>
+                                <span class="text-sm text-gray-400">Owned: <span id="click-count-${upgrade.id}"></span></span>
+                            </div>
+                            <button id="click-buy-${upgrade.id}" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-full upgrade-button disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                Buy
+                            </button>
+                        </div>
+                    `;
+                    clickUpgradesList.appendChild(upgradeDiv);
+
+                    const buyButton = document.getElementById(`click-buy-${upgrade.id}`);
+                    buyButton.addEventListener('click', () => {
+                        const cost = calculateCost(upgrade.baseCost, upgrade.count);
+                        if (currency >= cost) {
+                            currency -= cost;
+                            upgrade.count++;
+                            clickPower += upgrade.clickBoost;
+                            updateAllDisplay();
+                        }
+                    });
+                });
+                
+                const energyGenList = document.createElement('div');
+                energyGenList.id = 'energy-gen-list';
+                energyGenList.className = 'flex flex-col gap-3';
+                upgradesList.insertAdjacentElement('afterend', energyGenList);
+
+                energyGenerators.forEach(generator => {
+                    const generatorDiv = document.createElement('div');
+                    generatorDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    generatorDiv.innerHTML = `
+                        <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
+                            <p class="font-bold text-lg">${generator.name}</p>
+                            <p class="text-sm text-gray-400">Generates ${generator.energyPerTick} Energy/s</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-teal-300">Cost: <span id="energy-cost-${generator.id}"></span></span>
+                                <span class="text-sm text-gray-400">Owned: <span id="energy-count-${generator.id}"></span></span>
+                            </div>
+                            <button id="energy-buy-${generator.id}" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full upgrade-button disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                Buy
+                            </button>
+                        </div>
+                    `;
+                    energyGenList.appendChild(generatorDiv);
+                    
+                    const buyButton = document.getElementById(`energy-buy-${generator.id}`);
+                    buyButton.addEventListener('click', () => {
+                        const cost = calculateCost(generator.baseCost, generator.count);
+                        if (currency >= cost) {
+                            currency -= cost;
+                            generator.count++;
+                            updateAllDisplay();
+                        }
+                    });
+                });
+            }
+
+            function showClickPop(amount, event) {
+                const pop = document.createElement('div');
+                pop.textContent = `+${formatNumber(amount)}`;
+                pop.className = 'currency-pop';
+                pop.style.left = `${event.clientX}px`;
+                pop.style.top = `${event.clientY}px`;
+                document.body.appendChild(pop);
+                setTimeout(() => pop.remove(), 1000);
+
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.width = '100px';
+                ripple.style.height = '100px';
+                ripple.style.left = `${event.clientX - 50}px`;
+                ripple.style.top = `${event.clientY - 50}px`;
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 800);
+            }
+
+            quantumCoreContainer.addEventListener('click', (event) => {
+                const earnings = clickPower * prestigeMultiplier;
+                currency += earnings;
+                totalClicksEver += earnings;
+                updateAllDisplay();
+                showClickPop(earnings, event);
+            });
+
+            prestigeButton.addEventListener('click', () => {
+                const essenceGained = totalClicksEver;
+                const newPrestigeMultiplier = 1 + (essenceGained / 1000000) / 100;
+                const newPrestigeEnergyBoost = (essenceGained / 500000) / 100;
+                
+                if (newPrestigeMultiplier > prestigeMultiplier) {
+                    prestigeMultiplier = newPrestigeMultiplier;
+                    prestigeEnergyBoost = newPrestigeEnergyBoost;
+                    
+                    currency = 0;
+                    energy = 0;
+                    clickPower = 1;
+                    cps = 0;
+                    totalClicksEver = 0;
+                    
+                    autoUpgrades.forEach(u => u.count = 0);
+                    clickUpgrades.forEach(u => u.count = 0);
+                    energyGenerators.forEach(g => g.count = 0);
+                    
+                    updateAllDisplay();
+                    createUpgradeButtons();
+                    showMessage('Prestige complete! Your power has grown exponentially.');
+                    saveGame();
+                }
+            });
+
+            saveButton.addEventListener('click', () => {
+                saveGame();
+                showMessage('Game saved!');
+            });
+            loadButton.addEventListener('click', () => {
+                loadGame();
+                showMessage('Game loaded!');
+            });
+            
+            ttsButton.addEventListener('click', async () => {
+                if (isGeneratingTTS) return;
+                isGeneratingTTS = true;
+                ttsButton.disabled = true;
+                ttsButtonText.innerHTML = '<span class="spinner inline-block align-middle mr-2"></span>Loading...';
+
+                const payload = {
+                    contents: [{
+                        parts: [{ text: `You currently have ${Math.floor(currency).toLocaleString()} Quantum Essence.` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: "Puck" }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.play();
+                    } else {
+                        showMessage('Failed to generate audio.');
+                    }
+                } catch (error) {
+                    console.error('TTS API error:', error);
+                    showMessage('Error generating audio.');
+                } finally {
+                    isGeneratingTTS = false;
+                    ttsButton.disabled = false;
+                    ttsButtonText.innerHTML = '✨ Hear My Essence';
+                }
+            });
+
+            loreButton.addEventListener('click', async () => {
+                if (isGeneratingLore) return;
+                isGeneratingLore = true;
+                loreButton.disabled = true;
+                loreButtonText.innerHTML = '<span class="spinner inline-block align-middle mr-2"></span>Loading...';
+
+                const allUpgrades = [...autoUpgrades, ...clickUpgrades, ...energyGenerators];
+                const randomUpgrade = allUpgrades[Math.floor(Math.random() * allUpgrades.length)];
+                
+                const userQuery = `Write a short, creative, and quirky one-paragraph lore description for an incremental game upgrade named "${randomUpgrade.name}" in a cosmic or quantum theme.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    model: 'gemini-2.5-flash-preview-05-20'
+                };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const lore = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (lore) {
+                        loreTitle.textContent = randomUpgrade.name + " Lore";
+                        loreContent.textContent = lore;
+                        loreContainer.style.display = 'block';
+                    } else {
+                        showMessage('Failed to generate lore.');
+                    }
+                } catch (error) {
+                    console.error('Lore API error:', error);
+                    showMessage('Error generating lore.');
+                } finally {
+                    isGeneratingLore = false;
+                    loreButton.disabled = false;
+                    loreButtonText.innerHTML = '✨ Get Lore';
+                }
+            });
+            
+            toggleDevToolsButton.addEventListener('click', () => {
+                if (devToolsPanel.style.display === 'none') {
+                    devToolsPanel.style.display = 'block';
+                } else {
+                    devToolsPanel.style.display = 'none';
+                }
+            });
+
+            addClicksButton.addEventListener('click', () => {
+                currency += 1000000;
+                updateAllDisplay();
+                showMessage('1M Essence added!');
+            });
+            
+            addEnergyButton.addEventListener('click', () => {
+                energy += 100;
+                updateAllDisplay();
+                showMessage('100 Energy added!');
+            });
+
+            maxUpgradesButton.addEventListener('click', () => {
+                autoUpgrades.forEach(u => u.count = 99);
+                clickUpgrades.forEach(u => u.count = 99);
+                energyGenerators.forEach(g => g.count = 99);
+                clickPower = 1 + clickUpgrades.reduce((sum, u) => sum + u.clickBoost * u.count, 0);
+                updateAllDisplay();
+                createUpgradeButtons();
+                showMessage('All upgrades maxed out!');
+            });
+            
+            resetGameButton.addEventListener('click', () => {
+                resetGame();
+                showMessage('Game reset to default state.');
+            });
+
+            setInterval(() => {
+                // Generate energy
+                const totalEnergyPerTick = energyGenerators.reduce((sum, g) => sum + g.energyPerTick * g.count, 0) * (1 + prestigeEnergyBoost / 100);
+                energy += totalEnergyPerTick;
+                
+                // Consume energy and generate clicks
+                let energyConsumed = 0;
+                let autoClicks = 0;
+                autoUpgrades.forEach(upgrade => {
+                    const neededEnergy = upgrade.energyCost * upgrade.count;
+                    if (energy >= neededEnergy) {
+                        autoClicks += upgrade.cps * upgrade.count;
+                        energyConsumed += neededEnergy;
+                    }
+                });
+
+                currency += autoClicks;
+                energy -= energyConsumed;
+                totalClicksEver += autoClicks;
+
+                updateAllDisplay();
+            }, 1000);
+
+            loadGame();
+            createUpgradeButtons();
+            updateAllDisplay();
+            setInterval(saveGame, 30000);
+        });
+    </script>
+</body>
+</html>
