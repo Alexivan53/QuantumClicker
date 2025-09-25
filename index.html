@@ -46,33 +46,34 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
+            padding: 2rem;
         }
 
         .game-container {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2.5rem;
             max-width: 1400px;
-            width: 95%;
-            padding: 1.5rem;
+            width: 100%;
+            padding: 2.5rem;
             background-color: rgba(45, 55, 72, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
             text-align: center;
             animation: fadeIn 1s ease-out;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .title {
-            font-size: 3.5rem;
-            font-weight: 700;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
             color: #81e6d9;
             text-shadow: 0 0 15px #4fd1c5, 0 0 30px #4fd1c5;
         }
@@ -80,17 +81,17 @@
         .main-content {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 2rem;
+            gap: 2.5rem;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
             .main-content {
-                grid-template-columns: 2fr 1fr;
+                grid-template-columns: 2fr 1.2fr;
             }
         }
 
         .section-header {
-            font-size: 1.75rem;
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
             font-weight: 700;
             margin-bottom: 1.5rem;
             color: #63b3ed;
@@ -164,8 +165,8 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(30, 41, 59, 0.95);
-            padding: 2rem;
-            border-radius: 1rem;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             max-width: 600px;
             width: 90%;
@@ -175,6 +176,13 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        #end-game-container {
+            animation: slideIn 1s ease-out;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        
         #dev-tools-panel {
             display: none;
             animation: slideIn 0.5s ease-out;
@@ -208,12 +216,12 @@
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <div class="text-center">
                 <p class="text-3xl font-bold text-teal-400">Quantum Essence</p>
-                <p id="counter" class="text-5xl font-mono mt-2">0</p>
+                <p id="counter" class="text-5xl font-mono mt-2 text-white text-shadow-lg">0</p>
             </div>
             <div class="text-center">
-                <p class="text-xl text-gray-400">CPS: <span id="cps-display" class="font-bold">0</span></p>
-                <p class="text-xl text-gray-400">Energy: <span id="energy-display" class="font-bold">0</span></p>
-                <p class="text-xl text-gray-400">Click Power: <span id="click-power-display" class="font-bold">1</span></p>
+                <p class="text-xl text-gray-400">CPS: <span id="cps-display" class="font-bold text-green-400">0</span></p>
+                <p class="text-xl text-gray-400">Energy: <span id="energy-display" class="font-bold text-yellow-400">0</span></p>
+                <p class="text-xl text-gray-400">Click Power: <span id="click-power-display" class="font-bold text-purple-400">1</span></p>
             </div>
             <div class="flex flex-col gap-2">
                 <button id="save-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow transition duration-300">
@@ -226,7 +234,7 @@
         </div>
 
         <div class="main-content">
-            <div class="flex flex-col items-center p-4 bg-gray-700 rounded-lg shadow-inner relative overflow-hidden">
+            <div class="flex flex-col items-center p-6 bg-gray-800 rounded-2xl shadow-inner relative overflow-hidden">
                 <h2 class="section-header">Quantum Core</h2>
                 <div id="quantum-core-container" class="relative w-48 h-48 sm:w-64 sm:h-64 flex justify-center items-center cursor-pointer transition-transform duration-300 active:scale-95">
                     <div id="quantum-core" class="w-full h-full rounded-full bg-gradient-to-br from-teal-400 to-indigo-600 pulse-animation"></div>
@@ -264,21 +272,28 @@
             </div>
 
             <div class="flex flex-col gap-4">
-                <div class="p-4 bg-gray-700 rounded-lg shadow-md">
+                <div class="p-6 bg-gray-800 rounded-2xl shadow-md">
                     <h2 class="section-header">Click Upgrades</h2>
                     <div id="click-upgrades-list" class="flex flex-col gap-3">
                         <!-- Click Upgrades will be dynamically added here -->
                     </div>
                 </div>
 
-                <div class="p-4 bg-gray-700 rounded-lg shadow-md">
+                <div class="p-6 bg-gray-800 rounded-2xl shadow-md">
                     <h2 class="section-header">Generators</h2>
                     <div id="auto-upgrades-list" class="flex flex-col gap-3">
                         <!-- Auto-Upgrades will be dynamically added here -->
                     </div>
                 </div>
+                
+                <div class="p-6 bg-gray-800 rounded-2xl shadow-md">
+                    <h2 class="section-header">Energy</h2>
+                    <div id="energy-gen-list" class="flex flex-col gap-3">
+                        <!-- Energy Generators will be dynamically added here -->
+                    </div>
+                </div>
 
-                <div class="p-4 bg-gray-700 rounded-lg shadow-md mt-4">
+                <div class="p-6 bg-gray-800 rounded-2xl shadow-md mt-4">
                     <h2 class="section-header text-yellow-400">Prestige</h2>
                     <p class="text-gray-300 mb-2">Prestige to gain permanent bonuses to your essence production.</p>
                     <p class="text-gray-400 font-bold">Essence Multiplier: <span id="prestige-multiplier" class="text-yellow-400">1x</span></p>
@@ -288,6 +303,23 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <!-- New Endgame Section -->
+        <div id="end-game-container" class="mt-8 p-8 bg-purple-900 text-white rounded-2xl shadow-lg border-2 border-purple-500">
+            <h2 class="section-header text-purple-400 mb-4">Quantum Singularity Reached!</h2>
+            <p class="text-xl mb-4">
+                The core has achieved a state of perfect harmony, folding all of existence into a single point of infinite potential. You have transcended the need for clicks and generators. Your journey is complete.
+            </p>
+            <p class="font-mono text-gray-300">
+                Final Essence Multiplier: <span id="final-prestige-multiplier" class="text-purple-300 text-2xl font-bold"></span>
+            </p>
+            <p class="font-mono text-gray-300">
+                Final Energy Boost: <span id="final-prestige-energy-boost" class="text-purple-300 text-2xl font-bold"></span>
+            </p>
+            <button onclick="resetGame()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full mt-6 transition duration-300">
+                <i class="fas fa-redo-alt mr-2"></i>Restart Game
+            </button>
         </div>
     </div>
     
@@ -381,6 +413,9 @@
             const resetGameButton = document.getElementById('reset-game-button');
             const ttsButtonText = document.getElementById('tts-button-text');
             const loreButtonText = document.getElementById('lore-button-text');
+            const endGameContainer = document.getElementById('end-game-container');
+            const finalPrestigeMultiplierDisplay = document.getElementById('final-prestige-multiplier');
+            const finalPrestigeEnergyBoostDisplay = document.getElementById('final-prestige-energy-boost');
 
             let currency = 0;
             let energy = 0;
@@ -391,6 +426,7 @@
             let prestigeEnergyBoost = 0;
             let isGeneratingLore = false;
             let isGeneratingTTS = false;
+            let hasReachedEndgame = false;
 
             const autoUpgrades = [
                 { id: 'quantum_harvester', name: 'Quantum Harvester', baseCost: 100, cps: 0.1, energyCost: 0, count: 0 },
@@ -423,7 +459,8 @@
                     prestigeEnergyBoost,
                     autoUpgrades,
                     clickUpgrades,
-                    energyGenerators
+                    energyGenerators,
+                    hasReachedEndgame
                 };
                 localStorage.setItem('quantumClickerSave', JSON.stringify(gameState));
             }
@@ -438,6 +475,7 @@
                     totalClicksEver = savedState.totalClicksEver;
                     prestigeMultiplier = savedState.prestigeMultiplier || 1;
                     prestigeEnergyBoost = savedState.prestigeEnergyBoost || 0;
+                    hasReachedEndgame = savedState.hasReachedEndgame || false;
                     
                     savedState.autoUpgrades.forEach((savedUpgrade, index) => {
                         autoUpgrades[index].count = savedUpgrade.count;
@@ -453,7 +491,7 @@
                     
                     updateAllDisplay();
                     createUpgradeButtons();
-                    createEnergyGeneratorButtons();
+                    checkEndGame();
                 }
             }
             
@@ -465,12 +503,12 @@
                 totalClicksEver = 0;
                 prestigeMultiplier = 1;
                 prestigeEnergyBoost = 0;
+                hasReachedEndgame = false;
                 autoUpgrades.forEach(u => u.count = 0);
                 clickUpgrades.forEach(u => u.count = 0);
                 energyGenerators.forEach(g => g.count = 0);
                 updateAllDisplay();
                 createUpgradeButtons();
-                createEnergyGeneratorButtons();
                 saveGame();
             }
 
@@ -514,6 +552,24 @@
                 prestigeEnergyBoostDisplay.textContent = `${(prestigeEnergyBoost).toFixed(2)}%`;
                 const newMultiplier = 1 + (totalClicksEver / 1000000) / 100;
                 prestigeButton.disabled = newMultiplier <= prestigeMultiplier;
+                
+                checkEndGame();
+            }
+
+            function checkEndGame() {
+                if (prestigeMultiplier >= 10 && !hasReachedEndgame) {
+                    hasReachedEndgame = true;
+                    endGameContainer.style.display = 'block';
+                    finalPrestigeMultiplierDisplay.textContent = `${prestigeMultiplier.toFixed(2)}x`;
+                    finalPrestigeEnergyBoostDisplay.textContent = `${prestigeEnergyBoost.toFixed(2)}%`;
+                    document.body.scroll({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                    showMessage('The end is near! The Quantum Singularity has been revealed.');
+                } else if (prestigeMultiplier < 10) {
+                    endGameContainer.style.display = 'none';
+                }
             }
 
             function formatNumber(num) {
@@ -541,7 +597,7 @@
                 upgradesList.innerHTML = '';
                 autoUpgrades.forEach(upgrade => {
                     const upgradeDiv = document.createElement('div');
-                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-900 p-4 rounded-xl shadow-lg transition duration-300 hover:scale-105';
                     
                     upgradeDiv.innerHTML = `
                         <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
@@ -574,7 +630,7 @@
                 clickUpgradesList.innerHTML = '';
                 clickUpgrades.forEach(upgrade => {
                     const upgradeDiv = document.createElement('div');
-                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    upgradeDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-900 p-4 rounded-xl shadow-lg transition duration-300 hover:scale-105';
                     
                     upgradeDiv.innerHTML = `
                         <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
@@ -605,14 +661,12 @@
                     });
                 });
                 
-                const energyGenList = document.createElement('div');
-                energyGenList.id = 'energy-gen-list';
-                energyGenList.className = 'flex flex-col gap-3';
-                upgradesList.insertAdjacentElement('afterend', energyGenList);
+                const energyGenList = document.getElementById('energy-gen-list');
+                energyGenList.innerHTML = '';
 
                 energyGenerators.forEach(generator => {
                     const generatorDiv = document.createElement('div');
-                    generatorDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-3 rounded-lg shadow-md transition duration-300 hover:scale-105';
+                    generatorDiv.className = 'flex flex-col sm:flex-row justify-between items-center bg-gray-900 p-4 rounded-xl shadow-lg transition duration-300 hover:scale-105';
                     generatorDiv.innerHTML = `
                         <div class="text-left w-full sm:w-auto mb-2 sm:mb-0">
                             <p class="font-bold text-lg">${generator.name}</p>
@@ -662,6 +716,7 @@
             }
 
             quantumCoreContainer.addEventListener('click', (event) => {
+                if (hasReachedEndgame) return;
                 const earnings = clickPower * prestigeMultiplier;
                 currency += earnings;
                 totalClicksEver += earnings;
@@ -670,6 +725,8 @@
             });
 
             prestigeButton.addEventListener('click', () => {
+                if (hasReachedEndgame) return;
+
                 const essenceGained = totalClicksEver;
                 const newPrestigeMultiplier = 1 + (essenceGained / 1000000) / 100;
                 const newPrestigeEnergyBoost = (essenceGained / 500000) / 100;
@@ -833,10 +890,7 @@
                 showMessage('All upgrades maxed out!');
             });
             
-            resetGameButton.addEventListener('click', () => {
-                resetGame();
-                showMessage('Game reset to default state.');
-            });
+            window.resetGame = resetGame;
 
             setInterval(() => {
                 // Generate energy
